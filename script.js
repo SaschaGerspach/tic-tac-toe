@@ -35,12 +35,27 @@ function addSymbol(index, cell) {
 
         const winningCombination = checkWin(currentPlayer);
         if (winningCombination) {
-            setTimeout(() => drawWinningLine(winningCombination), 500); // Warten auf Animation
+            setTimeout(() => {
+                drawWinningLine(winningCombination);
+                showRestartButton();
+            }, 500); // Warten auf Animation
+        } else if (fields.every(field => field !== null)) {
+            showRestartButton(); // Alle Felder gefüllt, Spiel endet unentschieden
         } else {
             currentPlayer = currentPlayer === "circle" ? "cross" : "circle"; // Spielerwechsel
         }
     }
 }
+
+function restartGame() {
+    fields = [null, null, null, null, null, null, null, null, null];
+    currentPlayer = "circle";
+    render();
+    document.getElementById("restart-button").style.display = "none";
+}
+
+
+
 
 function checkWin(player) {
     const winningCombinations = [
@@ -63,20 +78,17 @@ function checkWin(player) {
 }
 
 function drawWinningLine(winningCombination) {
-    const content = document.getElementById("content");
-    const table = content.querySelector("table");
-
     const [first, , third] = winningCombination;
-    const firstCell = table.querySelector(`td[data-index="${first}"]`);
-    const thirdCell = table.querySelector(`td[data-index="${third}"]`);
+    const firstCell = document.querySelector(`td[data-index="${first}"]`);
+    const thirdCell = document.querySelector(`td[data-index="${third}"]`);
 
     const line = document.createElement("div");
     line.className = "line";
 
-    const startX = firstCell.offsetLeft + firstCell.offsetWidth / 2;
-    const startY = firstCell.offsetTop + firstCell.offsetHeight / 2;
-    const endX = thirdCell.offsetLeft + thirdCell.offsetWidth / 2;
-    const endY = thirdCell.offsetTop + thirdCell.offsetHeight / 2;
+    const startX = firstCell.offsetLeft + firstCell.offsetWidth / 2 - firstCell.getBoundingClientRect().left;
+    const startY = firstCell.offsetTop + firstCell.offsetHeight / 2 - firstCell.getBoundingClientRect().top;
+    const endX = thirdCell.offsetLeft + thirdCell.offsetWidth / 2 - firstCell.getBoundingClientRect().left;
+    const endY = thirdCell.offsetTop + thirdCell.offsetHeight / 2 - firstCell.getBoundingClientRect().top;
 
     const length = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
     const angle = Math.atan2(endY - startY, endX - startX) * (180 / Math.PI);
@@ -87,8 +99,21 @@ function drawWinningLine(winningCombination) {
     line.style.top = `${startY}px`;
     line.style.left = `${startX}px`;
 
-    content.appendChild(line);
+    firstCell.appendChild(line);
 }
+
+function showRestartButton() {
+    document.getElementById("restart-button").style.display = "block";
+}
+
+function restartGame() {
+    fields = [null, null, null, null, null, null, null, null, null];
+    currentPlayer = "circle";
+    document.querySelectorAll(".line").forEach(line => line.remove());
+    render();
+    document.getElementById("restart-button").style.display = "none";
+}
+
 
 function generateAnimatedCircleSVG() {
     return `
